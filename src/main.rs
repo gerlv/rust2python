@@ -166,6 +166,8 @@ test
     v05_fizzbuzz();
 
     v06_pattern_matching();
+
+    v07_structs();
 }
 
 fn naive_capitalize(s: &str) -> String {
@@ -264,4 +266,63 @@ fn v06_pattern_matching() {
     (1..24).into_iter().for_each(fizz_buzz);
 
     println!("---- Pattern Matching End ----");
+}
+
+fn v07_structs() {
+    println!("---- Structs Start ----");
+
+    struct A {
+        x: i32,
+        y: i32,
+    }
+
+    // struct B {
+    //     members: static Vec<i32>, <- doesn't exist in rust
+    // }
+
+    let mut a = A { x: 1, y: 2 };
+    a.x += 2;
+
+    let a_updated = A { y: 4, ..a };
+    println!("a.x {} a_updated.x {}", a.x, a_updated.x);
+    println!("a.y {} a_updated.y {}", a.y, a_updated.y);
+
+    #[derive(Debug)]
+    struct D {
+        x: i32,
+        y: i32,
+        z: i32,
+    }
+
+    impl D {
+        fn new(x: i32, y: i32, z: Option<i32>) -> Self {
+            match z {
+                Some(z) => Self { x, y, z },
+                None => Self { x, y, z: 0 },
+            }
+        }
+    }
+
+    use std::default::Default; // import trait
+
+    impl Default for D {
+        fn default() -> Self {
+            Self { x: 0, y: 0, z: 0 }
+        }
+    }
+
+    let d1 = D::new(1, 2, None);
+
+    // provides default option for all values, no way to enforce just 1 value
+    // if users have to provide some value, use `new` convention
+    let d2 = D {
+        x: 1,
+        y: 2,
+        ..D::default()
+    };
+
+    println!("{:?}", d1);
+    println!("{:?}", d2);
+
+    println!("---- Structs End ----");
 }
