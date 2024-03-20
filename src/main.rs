@@ -91,11 +91,7 @@ fn main() {
     println!("Used    chars: {}", string);
     println!("Trimmed chars: {}", trimmed_str);
 
-    let names: Vec<String> = vec![
-        "oleg".to_string(),
-        "óleg".to_string(),
-        "¶πø^ä".to_string(),
-    ];
+    let names: Vec<String> = vec!["oleg".to_string(), "óleg".to_string(), "¶πø^ä".to_string()];
     for name in names.iter() {
         println!("{} -> {}", name, naive_capitalize(name));
         println!("{} -> {}", name, ascii_capitalize(name));
@@ -104,15 +100,23 @@ fn main() {
     // UTF-8
 
     let ascii = String::from("Hello");
-    println!("'{}': length: {}, chars: {}, memsize: {}", ascii, ascii.len(), ascii.chars().count(),
+    println!(
+        "'{}': length: {}, chars: {}, memsize: {}",
+        ascii,
+        ascii.len(),
+        ascii.chars().count(),
         std::mem::size_of::<String>() + ascii.len()
     );
     println!("{:?}", ascii.as_bytes());
     println!("after e: {:?}", &ascii[2..]);
 
     let uni = String::from("Héllǒ");
-    println!("'{}': length: {}, chars: {}, memsize: {}", uni, uni.len(), uni.chars().count(),
-             std::mem::size_of::<String>() + uni.len()
+    println!(
+        "'{}': length: {}, chars: {}, memsize: {}",
+        uni,
+        uni.len(),
+        uni.chars().count(),
+        std::mem::size_of::<String>() + uni.len()
     );
     println!("{:?}", uni.as_bytes());
     // println!("after e: {:?}", &uni[2..]);  // throws error - byte index 2 is not a char boundary; it is inside 'é' (bytes 1..3) of `Héllǒ`
@@ -128,12 +132,11 @@ newline \n
 \n
 test
 "
-        .to_string();
+    .to_string();
     println!("{}", escape);
 
     let single_char = 'a'; // 'ab' <- fails
     println!("{}", single_char);
-
 
     // functions
 
@@ -147,17 +150,17 @@ test
 
     println!("{} {}", s, n);
 
-    let x = vec![1,2,3];
+    let x = vec![1, 2, 3];
     let equal_to_x = move |z| z == x;
-    let y = vec![1,2,3];
+    let y = vec![1, 2, 3];
     assert!(equal_to_x(y));
 
-    let items : Vec<i32> = vec![1,2,3,4,5];
+    let items: Vec<i32> = vec![1, 2, 3, 4, 5];
     let plus_one: Vec<_> = items.iter().map(|x| x + 1).collect();
     let sum_all: i32 = items.iter().map(|x| x + 1).sum();
     println!("{:?} {}", plus_one, sum_all);
 
-    let two_args = |x,y| x - y;
+    let two_args = |x, y| x - y;
     println!("{}", two_args(5, 3));
 
     v05_fizzbuzz();
@@ -229,7 +232,8 @@ fn v06_pattern_matching() {
     fn classify(animal: Animals) {
         match animal {
             Animals::Dog(d) => println!("A dog named: {}", d.name),
-            Animals::Cat(c) => println!("A cat aged: {}", c.age),
+            Animals::Cat(Cat { age }) => println!("A cat aged: {}", age),
+            // _ => println!("any animal") // <- any case, here will show a warning
         }
     }
 
@@ -242,11 +246,22 @@ fn v06_pattern_matching() {
         }
     }
 
-    for x in 0..6 { number(x) }
+    for x in 0..6 {
+        number(x)
+    }
     classify(Animals::Dog(Dog {
         name: "Fido".to_string(),
     }));
     classify(Animals::Cat(Cat { age: 3 }));
+
+    let fizz_buzz = |x| match (x % 3, x % 5) {
+        (0, 0) => println!("FizzBuzz"),
+        (0, _) => println!("Fizz"),
+        (_, 0) => println!("Buzz"),
+        (_, _) => println!("{}", x),
+    };
+
+    (1..24).into_iter().for_each(fizz_buzz);
 
     println!("---- Pattern Matching End ----");
 }
