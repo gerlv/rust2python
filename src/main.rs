@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Debug)]
 struct Matrix(f32, f32);
 
@@ -168,6 +170,8 @@ test
     v06_pattern_matching();
 
     v07_structs();
+
+    v08_hashmaps();
 }
 
 fn naive_capitalize(s: &str) -> String {
@@ -325,4 +329,39 @@ fn v07_structs() {
     println!("{:?}", d2);
 
     println!("---- Structs End ----");
+}
+
+#[macro_use]
+extern crate maplit;
+fn v08_hashmaps() {
+    println!("---- HashMaps Start ----");
+
+    use std::collections::HashMap;
+
+    let literal: HashMap<_, _> = vec![("key", "value"), ("blah", "blubb")]
+        .into_iter()
+        .collect();
+    println!("{:?}", literal);
+
+    let mut mutable = HashMap::new();
+    mutable.insert("one", 1);
+    mutable.insert("two", 2);
+    mutable.remove("one");
+    println!("{:?}", mutable.get("one"));
+    println!("{:?}", mutable.get("two"));
+
+    mutable.insert("three", 3);
+
+    for (k, v) in &mutable {
+        println!("{}: {}", k, v);
+    }
+
+    let map = hashmap! {
+        "a" => 1,
+        "b" => 2,
+    };
+
+    println!("{:?}", map);
+
+    println!("---- HashMaps End ----");
 }
