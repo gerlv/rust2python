@@ -174,6 +174,8 @@ test
     v08_hashmaps();
 
     v09_iterators();
+
+    v0a_error_handling();
 }
 
 fn naive_capitalize(s: &str) -> String {
@@ -396,6 +398,173 @@ fn v09_iterators() {
     println!("Code in tests run using `cargo test`");
     println!("---- Iterators End ----");
 }
+
+// Start error handling
+
+fn v0a_error_handling() {
+    println!("---- Error handling Start ----");
+    // rust has no exceptions
+    // use Result<T, E> to return value or error
+    // or Option<T> for optional values
+    // For libraries - https://crates.io/crates/thiserror
+    // For apps - `anyhow` or `eyre`
+
+    let food = Some("cabbage");
+    let snake = Some("snake");
+    let void = None;
+
+    give_commoner(food);
+    give_commoner(snake);
+    give_commoner(void);
+
+    let bird = Some("robin");
+    // let nothing: Option<std::option::Option<None>> = None;
+
+    give_royal(bird);
+    // give_royal(nothing); - throws an error on unwrap
+
+    // unpacking options with ? <- this can be nested in a line, i.e. op1?.op2?.value;
+
+    let age: Option<u8> = Some(32);
+    next_birthday(age);
+
+    let twenty = multiply("10", "2");
+    println!("Twenty: {}", twenty);
+    // let tt = multiply("t", "2"); // thorws an error
+    // println!("double is {}", tt);
+
+    // error handling boilerplate
+    let numbers = vec!["42", "93", "18"];
+    let empty = vec![];
+    let strings = vec!["tofu", "93", "18"];
+    print(double_first(numbers));
+    print(double_first(empty));
+    print(double_first(strings));
+
+    println!("---- Error handling End ----");
+}
+
+// error handling boilerplate for Rust
+use std::error;
+use std::error::Error;
+use std::fmt;
+use std::fmt::Formatter;
+use std::num::ParseIntError;
+
+// Initial implementation, without custom errors
+// standard type result, error boxed
+// type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
+//
+// #[derive(Debug)]
+// struct EmptyVec;  // error struct + display for this
+// impl fmt::Display for EmptyVec {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+//         write!(f, "invalid first item to double")
+//     }
+// }
+// impl error::Error for EmptyVec {}
+//
+// fn double_first(vec: Vec<&str>) -> Result<i32> {
+//     let first = vec.first().ok_or(EmptyVec)?;
+//     let parsed = first.parse::<i32>()?;
+//     Ok(2 * parsed)
+// }
+//
+
+// Second implementation, with custom errors
+// type Result<T> = std::result::Result<T, DoubleError>;
+//
+// impl fmt::Display for DoubleError {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+//         match *self {
+//             DoubleError::EmptyVec => write!(f, "please use a vector with at least one element"),
+//             DoubleError::Parse(ref e) => e.fmt(f),
+//         }
+//     }
+// }
+//
+// impl error::Error for DoubleError {
+//     fn source(&self) -> Option<&(dyn Error + 'static)> {
+//         match *self {
+//             DoubleError::EmptyVec => None,
+//             DoubleError::Parse(ref e) => Some(e),
+//         }
+//     }
+// }
+//
+// #[derive(Debug)]
+// enum DoubleError {
+//     EmptyVec,
+//     Parse(ParseIntError)
+// }
+//
+// // conversion from ParseIntError to DoubleError
+// // This will be automatically called by `?` if a `ParseIntError`
+// // needs to be converted into `DoubleError`
+// impl From<ParseIntError> for DoubleError {
+//     fn from(err: ParseIntError) -> Self {
+//         DoubleError::Parse(err)
+//     }
+// }
+
+use eyre::Result;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+enum DoubleError {
+    #[error("no first item")]
+    EmptyVec,
+    #[error("invalid first item, error: '{0}'")]
+    Parse(#[from] std::num::ParseIntError),
+}
+
+fn print(result: Result<i32>) {
+    match result {
+        Ok(n) => {
+            println!("The first double is {}", n)
+        }
+        Err(error) => {
+            println!("Error: {}", error)
+        }
+    }
+}
+
+fn double_first(vec: Vec<&str>) -> Result<i32> {
+    let first = vec.first().ok_or(DoubleError::EmptyVec)?;
+    let parsed = first.parse::<i32>().map_err(|e| DoubleError::Parse(e))?;
+    Ok(2 * parsed)
+}
+
+fn multiply(first_num_str: &str, second_num_str: &str) -> i32 {
+    let first_num = first_num_str.parse::<i32>().unwrap();
+    let second_num = second_num_str.parse::<i32>().unwrap();
+    first_num * second_num
+}
+
+fn next_birthday(current_age: Option<u8>) -> Option<String> {
+    // if current age is None - returns None;
+    // if current age is Some - inner u8 gets assigned to a value
+    let next_age: u8 = current_age?;
+    Some(format!("Next year I will be {}", next_age))
+}
+
+fn give_commoner(gift: Option<&str>) {
+    match gift {
+        Some("snake") => println!("Yuck, I'm putting this snake back"),
+        Some(inner) => println!("{}? How nice", inner),
+        None => println!("No gift? Oh well"),
+    }
+}
+
+fn give_royal(gift: Option<&str>) {
+    let inside = gift.unwrap(); // throws an error if gift is None
+    if inside == "snake" {
+        panic!("AaaaAaaAA!1");
+    }
+    println!("I love {}s", inside);
+}
+
+// End error handling
 
 #[cfg(test)]
 mod tests {
