@@ -176,6 +176,8 @@ test
     v09_iterators();
 
     v0a_error_handling();
+
+    v0b_traits();
 }
 
 fn naive_capitalize(s: &str) -> String {
@@ -399,7 +401,6 @@ fn v09_iterators() {
     println!("---- Iterators End ----");
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*; // test has to import what we define in the library
@@ -592,4 +593,166 @@ fn give_royal(gift: Option<&str>) {
 }
 
 // End error handling
+fn v0b_traits() {
+    // informs about functionality a type can share
+    // similar to interfaces or mixins in Python
 
+    println!("---- Traits Start ----");
+    // derive macro automatically implement traits to your structs
+
+    let d1 = D {
+        x: 3,
+        ..D::default()
+    };
+    let d2 = D { x: 3, y: 5 };
+    println!("D sums: {:?}", d1 + d2);
+
+    // useful traits:
+    // From or TyFrom to convert from strings to some val
+    // Display - to display and format values
+
+    let plus_one = make_adder_function(1);
+    assert_eq!(plus_one(2), 3);
+
+    let p = make_person(8);
+    println!("Person: {}", p.name());
+
+    let cs = CollegeStudent("Bert".to_string());
+    println!("{}", comp_sci_student_greeting(&cs));
+    println!("{}", comp_sci(&cs));
+    let prog = RustProgrammer("Bob".to_string());
+    println!("{}", comp_sci_vs_programmer(&cs, &prog));
+
+    println!("---- Traits End ----");
+}
+
+#[derive(Debug, PartialEq, Default)]
+struct D {
+    x: i32,
+    y: i32,
+}
+
+impl std::ops::Add for D {
+    type Output = D;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        D {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Drop for Counter {
+    fn drop(&mut self) {
+        // similar to defer in go, this will execute when iterator stops
+        // so you can clean up resources or close connection to db, etc
+
+        println!("Dropping at {}", self.count);
+    }
+}
+
+// can also define trait for a return type
+
+fn make_adder_function(y: i32) -> impl Fn(i32) -> i32 {
+    let closure = move |x: i32| x + y;
+    closure
+}
+
+// super traits - interface overloading
+
+trait Person {
+    fn name(&self) -> String {
+        String::from("Unnamed")
+    }
+}
+
+trait Student: Person {
+    fn university(&self) -> String;
+}
+
+trait Programmer {
+    fn fav_language(&self) -> String;
+}
+
+trait CompSciStudent: Programmer + Student {
+    fn git_username(&self) -> String;
+}
+
+struct StreetPerson(String);
+struct RustProgrammer(String);
+struct CollegeStudent(String);
+impl Person for StreetPerson {}
+impl Person for RustProgrammer {}
+
+impl Programmer for RustProgrammer {
+    fn fav_language(&self) -> String {
+        return String::from("Rust");
+    }
+}
+
+impl Person for CollegeStudent {
+    fn name(&self) -> String {
+        self.0.clone()
+    }
+}
+
+impl Programmer for CollegeStudent {
+    fn fav_language(&self) -> String {
+        return String::from("From Python to Rust");
+    }
+}
+
+impl Student for CollegeStudent {
+    fn university(&self) -> String {
+        String::from("Community college")
+    }
+}
+
+impl CompSciStudent for CollegeStudent {
+    fn git_username(&self) -> String {
+        self.0.to_lowercase()
+    }
+}
+
+fn comp_sci_student_greeting(student: &dyn CompSciStudent) -> String {
+    format!(
+        "Name is {} I attend {} Fav lang is {} git username is {}",
+        student.name(),
+        student.university(),
+        student.fav_language(),
+        student.git_username()
+    )
+}
+
+fn comp_sci<T: CompSciStudent>(student: &T) -> String {
+    // Same function as above but instead of &dyn stuff it uses generic type
+    comp_sci_student_greeting(student)
+}
+
+fn comp_sci_vs_programmer<T, U>(student: &T, programmer: &U) -> String
+where
+    T: CompSciStudent,
+    U: Programmer + Person,
+{
+    println!(
+        "Programmer named {} loves {}",
+        programmer.name(),
+        programmer.fav_language()
+    );
+    comp_sci(student)
+}
+
+fn make_person(rnd: u8) -> Box<dyn Person> {
+    // return generic value
+    // dyn used for heap allocations which aren't known at the compile time
+    // Box is known at the compile type as it's a pointer to the heap
+    match rnd {
+        0..=3 => Box::new(StreetPerson("Bob".to_string())),
+        4..=6 => Box::new(CollegeStudent("Jake".to_string())),
+        7..=9 => Box::new(RustProgrammer("Don".to_string())),
+        _ => Box::new(StreetPerson("Someone".to_string())),
+    }
+}
+
+// End traits
