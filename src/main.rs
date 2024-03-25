@@ -180,6 +180,8 @@ test
     v0b_traits();
 
     v0c_operator_overloading();
+
+    v0d_files();
 }
 
 fn naive_capitalize(s: &str) -> String {
@@ -827,3 +829,62 @@ impl ops::Mul<i32> for MyString {
 }
 
 // End 0C. Operator Overloading
+
+// Start 0D. Files
+fn v0d_files() {
+    println!("---- Files Start ----");
+
+    read_sales_csv();
+    println!("{:?}", read_fonts());
+
+    println!("---- Files End ----");
+}
+
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
+use std::path::{Path, PathBuf};
+
+fn read_sales_csv() -> io::Result<()> {
+    let file = File::open("./data/sales.csv")?;
+    let reader = BufReader::new(file);
+
+    let mut found = 0_usize;
+    for line in reader.lines() {
+        let line = line?;
+        let elems: Vec<&str> = line.split(',').collect();
+        if elems[0] == "Tanzania" {
+            found += 1;
+        }
+    }
+
+    println!("found {}_sales for Tanzania", found);
+
+    Ok(())
+}
+
+fn read_fonts() -> io::Result<()> {
+    let data = bytes_from_file("./data/sales.csv")?;
+    println!("Data size {}bytes", data.len());
+
+    // works but throws an incorrect error, should be not a directory - error due to ~ expansion
+    let user_home: String = "~/".to_string();
+    let user_fonts = Path::new(&user_home).join("Library").join("Fonts");
+    println!("user_home: {:?} user_fonts: {:?}", user_home, user_fonts);
+
+    let _data = bytes_from_file(user_fonts)?;
+
+    //todo install dirs module
+    // let user_home: PathBuf = dirs::home_dir().expect("hno home dir");
+    // let user_fonts = Path::new(&user_home).join("Library").join("Fonts");
+    // println!("user_home: {:?} user_fonts: {:?}", user_home, user_fonts);
+    //
+    // let _data = bytes_from_file(user_fonts)?;
+
+    Ok(())
+}
+
+fn bytes_from_file(filename: impl AsRef<Path>) -> io::Result<Vec<u8>> {
+    Ok(std::fs::read(filename)?)
+}
+
+// End 0D. Files
