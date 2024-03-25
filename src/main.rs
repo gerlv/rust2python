@@ -178,6 +178,8 @@ test
     v0a_error_handling();
 
     v0b_traits();
+
+    v0c_operator_overloading();
 }
 
 fn naive_capitalize(s: &str) -> String {
@@ -476,7 +478,7 @@ fn v0a_error_handling() {
 use std::error;
 use std::error::Error;
 use std::fmt;
-use std::fmt::Formatter;
+use std::fmt::{format, Formatter};
 use std::num::ParseIntError;
 
 // Initial implementation, without custom errors
@@ -756,3 +758,72 @@ fn make_person(rnd: u8) -> Box<dyn Person> {
 }
 
 // End traits
+
+// Start 0C. Operator Overloading
+fn v0c_operator_overloading() {
+    println!("---- Operator Overloading Start ----");
+
+    let ms = MyString("Foo".to_string());
+    println!("Foo + Bar = {}", ms.clone() + "Bar".to_string());
+    println!("Foo2 + -12 = {}", ms.clone() + -12_i32);
+    println!("100 + Foo3 = {}", 100_i32 + ms.clone());
+    println!("Foo4 * -12 = {}", ms.clone() * -12_i32);
+    println!("Foo4 * 12 = {}", ms.clone() * 12_i32);
+
+    println!("---- Operator Overloading End ----");
+}
+
+use std::fmt::Write;
+use std::ops;
+
+#[derive(Debug, Clone)]
+struct MyString(String);
+
+impl fmt::Display for MyString {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl ops::Add<String> for MyString {
+    type Output = MyString;
+
+    fn add(self, rhs: String) -> Self::Output {
+        println!("> MyString.add<String>({}) was called", &rhs);
+        MyString(format!("{}{}", self.0, rhs))
+    }
+}
+
+impl ops::Add<i32> for MyString {
+    type Output = MyString;
+
+    fn add(self, rhs: i32) -> Self::Output {
+        println!("> MyString.add<i32>({}) was called", &rhs);
+        MyString(format!("{}{}", self.0, rhs))
+    }
+}
+
+impl ops::Add<MyString> for i32 {
+    type Output = MyString;
+
+    fn add(self, rhs: MyString) -> Self::Output {
+        println!("> i32.add<MyString>({}) was called", &rhs);
+        MyString(format!("{}{}", self, &rhs))
+    }
+}
+
+impl ops::Mul<i32> for MyString {
+    type Output = MyString;
+
+    fn mul(self, rhs: i32) -> Self::Output {
+        println!("> MyString.mul<i32>({}) was called", &rhs);
+        let caplen: usize = if rhs < 0 { 0 } else { rhs as usize };
+        let mut temp = String::with_capacity(&self.0.len() * caplen);
+        for _ in 0..rhs {
+            temp.write_str(&self.0).expect("writing to string failed");
+        }
+        MyString(temp)
+    }
+}
+
+// End 0C. Operator Overloading
