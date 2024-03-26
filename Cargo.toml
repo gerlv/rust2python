@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 async-std = "1.12.0"
 cpython = "0.7.1"
+dirs = "5.0.1"
 eyre = "0.6.12"
 maplit = "1.0.2"
 pyo3 = "0.20.3"

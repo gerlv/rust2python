@@ -866,19 +866,11 @@ fn read_fonts() -> io::Result<()> {
     let data = bytes_from_file("./data/sales.csv")?;
     println!("Data size {}bytes", data.len());
 
-    // works but throws an incorrect error, should be not a directory - error due to ~ expansion
-    let user_home: String = "~/".to_string();
+    let user_home: PathBuf = dirs::home_dir().expect("hno home dir");
     let user_fonts = Path::new(&user_home).join("Library").join("Fonts");
     println!("user_home: {:?} user_fonts: {:?}", user_home, user_fonts);
 
     let _data = bytes_from_file(user_fonts)?;
-
-    //todo install dirs module
-    // let user_home: PathBuf = dirs::home_dir().expect("hno home dir");
-    // let user_fonts = Path::new(&user_home).join("Library").join("Fonts");
-    // println!("user_home: {:?} user_fonts: {:?}", user_home, user_fonts);
-    //
-    // let _data = bytes_from_file(user_fonts)?;
 
     Ok(())
 }
